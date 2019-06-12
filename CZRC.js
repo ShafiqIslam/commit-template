@@ -30,6 +30,7 @@ CZRC.prototype.loadFromFile = function(file) {
 };
 
 CZRC.prototype.loadScopesFromProject = function() {
+    this.scopes = [];
     let own_rc = __dirname + '/' + rc_file_name;
     let project_rc = __dirname + '../../../' + rc_file_name;
     if(fs.existsSync(project_rc)) {
@@ -37,7 +38,7 @@ CZRC.prototype.loadScopesFromProject = function() {
         return;
     }
 
-    this.loadScopesFromFile(own_rc);
+    if(fs.existsSync(own_rc)) this.loadScopesFromFile(own_rc);
 };
 
 CZRC.prototype.loadScopesFromFile = function(file) {
