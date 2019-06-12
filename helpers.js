@@ -9,3 +9,8 @@ String.prototype.trimAny = function (s) {
     let regex = new RegExp("^[" + s + "]+|[" + s + "]+$", "g");
     return this.replace(regex, "");
 };
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};

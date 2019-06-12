@@ -9,7 +9,7 @@ function CZRC(czrc) {
 
 CZRC.prototype.loadFromObject = function (czrc) {
 	this.types = czrc ? czrc.types : [];  
-	this.ticketTrackers = czrc ? czrc.ticket_trackers : [];  
+	this.issueTrackers = czrc ? czrc.issue_trackers : [];  
 	this.authors = czrc ? czrc.authors : [];  
 	this.scopes = czrc ? czrc.scopes : [];  
 	this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;  
@@ -74,6 +74,49 @@ CZRC.prototype.getAuthorByName = function(name) {
     for(let i=0; i<this.authors.length; i++) {
         if(this.authors[i].name === name) return this.authors[i];
     }
+    return null;
+};
+
+CZRC.prototype.getTypeByName = function(name) {
+    for(let i=0; i<this.types.length; i++) {
+        if(this.types[i].name === name) return this.types[i];
+    }
+    return null;
+};
+
+CZRC.prototype.getTypeByEmoji = function(emoji) {
+    for(let i=0; i<this.types.length; i++) {
+        if(this.types[i].emoji === emoji) return this.types[i];
+    }
+    return null;
+};
+
+CZRC.prototype.isValidTypeName = function(type) {
+    return this.getTypeByName(type) !== null;
+};
+
+CZRC.prototype.isValidTypeEmoji = function(emoji) {
+    return this.getTypeByEmoji(emoji) !== null;
+};
+
+CZRC.prototype.isValidType = function(name, emoji) {
+    let type = this.getTypeByName(name);
+    if(type === null) return false;
+    return type.emoji === emoji;
+};
+
+CZRC.prototype.isValidAuthor = function(name, email) {
+    let author = this.getAuthorByName(name);
+    if(author === null) return false;
+    return author.email === email;
+};
+
+CZRC.prototype.isValidScope = function(scope) {
+    return this.scopes.includes(scope);
+};
+
+CZRC.prototype.isValidIssueTracker = function(name) {
+    return this.issueTrackers.includes(name);
 };
 
 module.exports = CZRC;
