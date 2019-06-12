@@ -2,41 +2,46 @@ const pad = require('pad');
 const fuzzy = require('fuzzy');
 const fs = require('fs');
 const read = fs.readFileSync;
+const rc_file_name = ".czrc.json";
 
 function CZRC(czrc) {
-	this.loadFromObject(czrc);
+    this.loadFromObject(czrc);
 }
 
 CZRC.prototype.loadFromObject = function (czrc) {
-	this.types = czrc ? czrc.types : [];  
-	this.issueTrackers = czrc ? czrc.issue_trackers : [];  
-	this.authors = czrc ? czrc.authors : [];  
-	this.scopes = czrc ? czrc.scopes : [];  
-	this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;  
-	this.bodyMaxLength = czrc ? czrc.body_max_length : 80;  
+    this.types = czrc ? czrc.types : [];
+    this.issueTrackers = czrc ? czrc.issue_trackers : [];
+    this.authors = czrc ? czrc.authors : [];
+    this.scopes = czrc ? czrc.scopes : [];
+    this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;
+    this.bodyMaxLength = czrc ? czrc.body_max_length : 80;
 };
 
 CZRC.prototype.load = function() {
-	const homeDir = require('home-dir');
-	this.loadFromFile(homeDir('.czrc.json'));
+    const homeDir = require('home-dir');
+    this.loadFromFile(homeDir(rc_file_name));
     this.loadScopesFromProject();
 };
 
 CZRC.prototype.loadFromFile = function(file) {
-	let czrc = read(file, 'utf8');
-	czrc = czrc && JSON.parse(czrc) || null;
-	this.loadFromObject(czrc);
+    let czrc = read(file, 'utf8');
+    czrc = czrc && JSON.parse(czrc) || null;
+    this.loadFromObject(czrc);
 };
 
 CZRC.prototype.loadScopesFromProject = function() {
-    let own_package_json = __dirname + '/package.json';
-    let project_package_json = __dirname + '../../../package.json';
-    if(fs.existsSync(project_package_json)) {
-        this.scopes = JSON.parse(read(project_package_json, 'utf8')).czrcScopes;
+    let own_rc = __dirname + '/' + rc_file_name;
+    let project_rc = __dirname + '../../../' + rc_file_name;
+    if(fs.existsSync(project_rc)) {
+        this.loadScopesFromFile(project_rc);
         return;
     }
 
-    this.scopes = JSON.parse(read(own_package_json, 'utf8')).czrcScopes;
+    this.loadScopesFromFile(own_rc);
+};
+
+CZRC.prototype.loadScopesFromFile = function(file) {
+    this.scopes = JSON.parse(read(file, 'utf8')).scopes;
 };
 
 CZRC.prototype.getPromise = function() {
