@@ -3,7 +3,7 @@ const wrap = require('wrap-ansi');
 require('./helpers.js');
 
 let _czrc = null;
-let _answers = null;
+let _message = null;
 
 let wrap_body = function(s) {
 	return wrap(s, _czrc.bodyMaxLength);
@@ -12,90 +12,89 @@ let wrap_body = function(s) {
 /**
  * Format the git commit message from given answers.
  *
- * @param {Object} answers Answers provide by `inquier.js`
+ * @param {Message} Message object containing message segments 
  * @return {String} Formated git commit message
  */
-function format(answers) {
-    _answers = answers;
-    let answer_segments = [];
-    answer_segments.push(formatSubject());
-    answer_segments.push('Type(s): ' + formatTypes());
-    if(_answers.scopes && _answers.scopes.length) {
+function format(message) {
+    _message = message;
+    let message_segments = [];
+    let headers = _czrc.sectionHeaders;
+    message_segments.push(formatSubject());
+    message_segments.push(headers.types + formatTypes());
+    if(_message.scopes && _message.scopes.length) {
         let s = formatScopes(); 
-        if(s) answer_segments.push('Scope(s): ' + s);
+        if(s) message_segments.push(headers.scopes + s);
     }
-    if(_answers.why) answer_segments.push('Why:\n' + wrap_body(_answers.why));
-    if(_answers.what) answer_segments.push('What:\n' + wrap_body(_answers.what));
+    if(_message.why) message_segments.push(headers.why + wrap_body(_message.why));
+    if(_message.what) message_segments.push(headers.what + wrap_body(_message.what));
 
-    if(_answers.tickets && _answers.tickets.length) {
-        let t = formatTickets();
-        if(t) answer_segments.push('Ticket(s):' + t);
+    if(_message.issues && _message.issues.length) {
+        let t = formatIssues();
+        if(t) message_segments.push(headers.issues.trimAny('\n') + t);
     }
-    if(_answers.references && _answers.references.length) {
+    if(_message.references && _message.references.length) {
         let r = formatReferences(); 
-        if(r) answer_segments.push('Reference(s):' + r);
+        if(r) message_segments.push(headers.references.trimAny('\n') + r);
     }
-    if(_answers.co_authors && _answers.co_authors.length) {
+    if(_message.coAuthors && _message.coAuthors.length) {
         let a = formatCoAuthors(); 
-        if(a) answer_segments.push('Co Authored By:' + a);
+        if(a) message_segments.push(headers.co_authors.trimAny('\n') + a);
     }
-    return answer_segments.join('\n\n');
+    return message_segments.join('\n\n');
 }
 
 function formatSubject() {
     let emojis = '';
-    _answers.types.forEach(function(type) {
-        emojis += type.type.emoji + (type.type.emoji.length == 1 ? ' ' : '  ');
+    _message.types.forEach(function(type) {
+        emojis += type.emoji + (type.emoji.length == 1 ? ' ' : '  ');
     });
-    let subject = emojis + _answers.subject.trimAny('. ').ucFirst();
+    let subject = emojis + _message.subject.trimAny('. ').ucFirst();
     return truncate(subject, _czrc.subjectMaxLength);
 }
 
 function formatTypes() {
     let types = '';
-    _answers.types.forEach(function(type) {
-        types += type.type.name + ', ';
+    _message.types.forEach(function(type) {
+        types += type.name + _czrc.inlineSeparator;
     });
-    return types.trimAny(', ');
+    return types.trimAny(_czrc.inlineSeparator);
 }
 
 function formatScopes() {
 	let scopes = '';
-	_answers.scopes.forEach(function(scope) {
-        if(scope.scope) scopes += scope.scope + ', ';
+	_message.scopes.forEach(function(scope) {
+        if(scope) scopes += scope + _czrc.inlineSeparator;
     });
-	return scopes.trimAny(', ');
+	return scopes.trimAny(_czrc.inlineSeparator);
 }
 
-function formatTickets() {
-    let programs = {};
-	_answers.tickets.forEach(function(ticket) {
-        let program = ticket.tracker;
-        if(ticket.tracker && ticket.ticket_id) {
-            if(!programs.hasOwnProperty(program)) programs[program] = '';
-            programs[program] += ticket.ticket_id + ', '; 
-        }
+function formatIssues() {
+    let trackers = {};
+	_message.issues.forEach(function(issue) {
+        let tracker = issue.tracker;
+        if(!trackers.hasOwnProperty(tracker)) trackers[tracker] = '';
+        trackers[tracker] += issue.issueId + _czrc.inlineSeparator; 
 	});
-	let tickets = '';
-    for(program in programs) {
-        tickets += '\n- ' + program + ': ' + programs[program].trimAny(', ');
+	let issues = '';
+    for(tracker in trackers) {
+        issues += '\n' + _czrc.bullet + tracker + _czrc.issueTrackerIdSeparator + trackers[tracker].trimAny(_czrc.inlineSeparator);
     }
-	return tickets;
+	return issues;
 }
 
 function formatCoAuthors() {
 	let co_authors = '';
-	_answers.co_authors.forEach(function(author) {
-        let co_author = _czrc.getAuthorByName(author.co_author);
-		co_authors += '\n- ' + co_author.name + ' <' + co_author.email + '>';
+    let email_tag = _czrc.authorEmailTag;
+	_message.coAuthors.forEach(function(author) {
+		co_authors += '\n' + _czrc.bullet + author.name + email_tag.start + author.email + email_tag.end;
 	});
 	return co_authors;
 }
 
 function formatReferences() {
 	let references = '';
-	_answers.references.forEach(function(reference) {
-		if(reference.reference) references += '\n' + wrap_body('- ' + reference.reference);
+	_message.references.forEach(function(reference) {
+		references += '\n' + wrap_body(_czrc.bullet + reference);
 	});
 	return references;
 }

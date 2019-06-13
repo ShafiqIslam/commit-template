@@ -15,6 +15,11 @@ CZRC.prototype.loadFromObject = function (czrc) {
     this.scopes = czrc ? czrc.scopes : [];
     this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;
     this.bodyMaxLength = czrc ? czrc.body_max_length : 80;
+    this.sectionHeaders = czrc ? czrc.section_headers : {};
+    this.bullet = czrc ? czrc.bullet : '- ';
+    this.inlineSeparator = czrc ? czrc.inline_separator : ', ';
+    this.issueTrackerIdSeparator = czrc ? czrc.issue_tracker_id_separator : ': ';
+    this.authorEmailTag = czrc ? czrc.author_email_tag : { start: ' <', end: '>' };
 };
 
 CZRC.prototype.load = function() {
