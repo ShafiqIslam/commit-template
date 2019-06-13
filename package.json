@@ -1,6 +1,6 @@
 {
   "name": "@sheba/commit-template",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "JS wrapper of https://github.com/ShafiqIslam/dotfiles/blob/master/git/.gitmessage.",
   "homepage": "https://github.com/ShafiqIslam/commit-template",
   "repository": {
