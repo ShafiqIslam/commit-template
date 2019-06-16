@@ -10,6 +10,8 @@ let issue = require('./dto/issue.js');
 let format_string = require('./formatter/to_string.js')(czrc);
 let format_object = require('./formatter/to_object.js')(czrc);
 
+let DecomposingError = require('./formatter/errors/decomposing_error.js');
+
 module.exports = {
     czrc: czrc,
     dto: {
@@ -20,6 +22,9 @@ module.exports = {
     },
     formatter: {
         toString: format_string,
-        toObject: format_obect,
+        toObject: format_object,
+    },
+    errors: {
+        decompose: DecomposingError
     }
 };
