@@ -23,6 +23,7 @@ let _message_splits = null;
 function format(message_string) {
     _message_splits = message_string.replaceAll('\r\n', '\n').trimAny('\n').split('\n\n');
     let message = new Message();
+    checkRequired();
 	let types = getTypes();
     message.setSubject(getSubject(types)).setTypes(types);
     for(let i=2; i<_message_splits.length; i++) {
@@ -51,11 +52,11 @@ function getSubject(types) {
 	let subject = _message_splits[0];
 	if(subject.length > _czrc.subjectMaxLength) throw new MaxLengthExceeded(subject, _czrc.subjectMaxLength);
 	if(subject.endsWith('.') || subject.endsWith(',')) throw new DecomposingError("Punctuations not allowed for subject line ending.");
-	for(let i=0; i<types.length; i++) {
+	/*for(let i=0; i<types.length; i++) {
 		if(!subject.startsWith(types[i].emoji)) throw new DecomposingError("Type emoji does not match for type: " + types[i].name);
 		subject = subject.replace(types[i].emoji, '').trim();
 	}
-	if(subject[0] !== subject[0].toUpperCase()) throw new DecomposingError("Subject must be capitalized"); 
+	if(subject[0] !== subject[0].toUpperCase()) throw new DecomposingError("Subject must be capitalized");*/
 	return subject;
 }
 
