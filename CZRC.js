@@ -1,8 +1,11 @@
 const pad = require('pad');
 const fuzzy = require('fuzzy');
 const fs = require('fs');
+const download = require('download');
 const read = fs.readFileSync;
+const write = fs.writeFileSync;
 const rc_file_name = ".czrc.json";
+const file_hosted_url = "https://raw.githubusercontent.com/ShafiqIslam/dotfiles/master/git/.czrc.json";
 
 function CZRC(czrc) {
     this.loadFromObject(czrc);
@@ -11,6 +14,7 @@ function CZRC(czrc) {
 CZRC.prototype.loadFromObject = function (czrc) {
     this.types = czrc ? czrc.types : [];
     this.issueTrackers = czrc ? czrc.issue_trackers : [];
+    this.defaultIssueTracker = czrc ? czrc.default_issue_tracker : '';
     this.authors = czrc ? czrc.authors : [];
     this.scopes = czrc ? czrc.scopes : [];
     this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;
@@ -22,11 +26,22 @@ CZRC.prototype.loadFromObject = function (czrc) {
     this.authorEmailTag = czrc ? czrc.author_email_tag : { start: ' <', end: '>' };
 };
 
-CZRC.prototype.load = function() {
+CZRC.prototype.load = async function() {
     const homeDir = require('home-dir');
-    this.loadFromFile(homeDir(rc_file_name));
+    rc_file_fqn = homeDir(rc_file_name);
+    if (fs.existsSync(rc_file_fqn)) {
+        downloadFile(rc_file_fqn).catch(function(e) { console.error(e); });
+    } else {
+        await downloadFile(rc_file_fqn);
+    }
+
+    this.loadFromFile(rc_file_fqn);
     this.loadScopesFromProject();
 };
+
+async function downloadFile(file_fqn) {
+    write(file_fqn, await download(file_hosted_url));
+}
 
 CZRC.prototype.loadFromFile = function(file) {
     let czrc = read(file, 'utf8');
@@ -38,12 +53,12 @@ CZRC.prototype.loadScopesFromProject = function() {
     this.scopes = [];
     let own_rc = __dirname + '/' + rc_file_name;
     let project_rc = __dirname + '/../../../' + rc_file_name;
-    if(fs.existsSync(project_rc)) {
+    if (fs.existsSync(project_rc)) {
         this.loadScopesFromFile(project_rc);
         return;
     }
 
-    if(fs.existsSync(own_rc)) this.loadScopesFromFile(own_rc);
+    if (fs.existsSync(own_rc)) this.loadScopesFromFile(own_rc);
 };
 
 CZRC.prototype.loadScopesFromFile = function(file) {
@@ -82,21 +97,21 @@ CZRC.prototype.searchAuthor = function(answers, input) {
 };
 
 CZRC.prototype.getAuthorByName = function(name) {
-    for(let i=0; i<this.authors.length; i++) {
+    for (let i=0; i<this.authors.length; i++) {
         if(this.authors[i].name === name) return this.authors[i];
     }
     return null;
 };
 
 CZRC.prototype.getTypeByName = function(name) {
-    for(let i=0; i<this.types.length; i++) {
+    for (let i=0; i<this.types.length; i++) {
         if(this.types[i].name === name) return this.types[i];
     }
     return null;
 };
 
 CZRC.prototype.getTypeByEmoji = function(emoji) {
-    for(let i=0; i<this.types.length; i++) {
+    for (let i=0; i<this.types.length; i++) {
         if(this.types[i].emoji === emoji) return this.types[i];
     }
     return null;

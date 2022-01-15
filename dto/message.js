@@ -1,3 +1,7 @@
+const nlp = require('compromise');
+
+const ValidationError = require("../formatter/errors/validation_error");
+
 function Message() {
     this.subject = null;
     this.types = [];
@@ -71,6 +75,15 @@ Message.prototype.setReferences = function (references) {
 Message.prototype.setCoAuthors = function (co_authors) {
     this.coAuthors = co_authors;
     return this;
+};
+
+Message.prototype.validate = function () {
+    if (!this.subject) throw new ValidationError("Subject can't be empty");
+    let first_word = this.subject.split(" ")[0];
+    let imperative = nlp(first_word).verbs().isImperative().text();
+    if (first_word != imperative) throw new ValidationError("Subject must be in imperative mood, and should complete \"This commit will ... \", e.g. \"... Do something\"");
+
+    if (!this.issues || this.issues.length == 0) throw new ValidationError("Issues can't be empty");
 };
 
 module.exports = Message;

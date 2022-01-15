@@ -48,7 +48,7 @@ function formatSubject() {
     _message.types.forEach(function(type) {
         emojis += type.emoji + (type.emoji.length == 1 ? ' ' : '  ');
     });
-    let subject = emojis + _message.subject.trimAny('. ').ucFirst();
+    let subject = emojis + _message.subject.trimAny('. ').toLowerCase().ucFirst();
     return truncate(subject, _czrc.subjectMaxLength);
 }
 
