@@ -1,148 +1,131 @@
-const pad = require('pad');
-const fuzzy = require('fuzzy');
-const fs = require('fs');
-const download = require('download');
-const read = fs.readFileSync;
-const write = fs.writeFileSync;
-const rc_file_name = ".czrc.json";
-const file_hosted_url = "https://raw.githubusercontent.com/ShafiqIslam/dotfiles/master/git/.czrc.json";
+const pad = require("pad");
+const fuzzy = require("fuzzy");
 
-function CZRC(czrc) {
-    this.loadFromObject(czrc);
+function CZRC() {
+  this.types = [];
+  this.issueTrackers = [];
+  this.defaultIssueTracker = "";
+  this.authors = [];
+  this.scopes = [];
+  this.subjectMaxLength = 72;
+  this.bodyMaxLength = 80;
+  this.sectionHeaders = {};
+  this.bullet = "- ";
+  this.inlineSeparator = ", ";
+  this.issueTrackerIdSeparator = ": ";
+  this.authorEmailTag = { start: " <", end: ">" };
+  this.blockNonImperativeSubject = true;
+  this.extraImperativeVerbs = [];
 }
 
-CZRC.prototype.loadFromObject = function (czrc) {
-    this.types = czrc ? czrc.types : [];
-    this.issueTrackers = czrc ? czrc.issue_trackers : [];
-    this.defaultIssueTracker = czrc ? czrc.default_issue_tracker : '';
-    this.authors = czrc ? czrc.authors : [];
-    this.scopes = czrc ? czrc.scopes : [];
-    this.subjectMaxLength = czrc ? czrc.subject_max_length : 72;
-    this.bodyMaxLength = czrc ? czrc.body_max_length : 80;
-    this.sectionHeaders = czrc ? czrc.section_headers : {};
-    this.bullet = czrc ? czrc.bullet : '- ';
-    this.inlineSeparator = czrc ? czrc.inline_separator : ', ';
-    this.issueTrackerIdSeparator = czrc ? czrc.issue_tracker_id_separator : ': ';
-    this.authorEmailTag = czrc ? czrc.author_email_tag : { start: ' <', end: '>' };
+CZRC.prototype.overwrite = function (overwrite) {
+  if (overwrite === null) return;
+
+  this.types = overwrite.types || this.types;
+  this.issueTrackers = overwrite.issueTrackers || this.issueTrackers;
+  this.defaultIssueTracker = this.hasIssueTracker() ? overwrite.defaultIssueTracker || this.defaultIssueTracker : "";
+  this.authors = overwrite.authors || this.authors;
+  this.scopes = overwrite.scopes || this.scopes;
+  this.subjectMaxLength = overwrite.subjectMaxLength || this.subjectMaxLength;
+  this.bodyMaxLength = overwrite.bodyMaxLength || this.bodyMaxLength;
+  this.sectionHeaders = overwrite.sectionHeaders || this.sectionHeaders;
+  this.bullet = overwrite.bullet || this.bullet;
+  this.inlineSeparator = overwrite.inlineSeparator || this.inlineSeparator;
+  this.issueTrackerIdSeparator = overwrite.issueTrackerIdSeparator || this.issueTrackerIdSeparator;
+  this.authorEmailTag = overwrite.authorEmailTag || this.authorEmailTag;
+  this.blockNonImperativeSubject = overwrite.blockNonImperativeSubject === false ? false : true;
 };
 
-CZRC.prototype.load = async function() {
-    const homeDir = require('home-dir');
-    rc_file_fqn = homeDir(rc_file_name);
-    if (fs.existsSync(rc_file_fqn)) {
-        downloadFile(rc_file_fqn).catch(function(e) { console.error(e); });
-    } else {
-        await downloadFile(rc_file_fqn);
-    }
-
-    this.loadFromFile(rc_file_fqn);
-    this.loadScopesFromProject();
+CZRC.prototype.pushExtraImperativeVerbs = function (extraImperativeVerbs) {
+  if (!Array.isArray(extraImperativeVerbs)) return;
+  if (extraImperativeVerbs.length == 0) return;
+  this.extraImperativeVerbs = [...this.extraImperativeVerbs, ...extraImperativeVerbs];
 };
 
-async function downloadFile(file_fqn) {
-    write(file_fqn, await download(file_hosted_url));
-}
-
-CZRC.prototype.loadFromFile = function(file) {
-    let czrc = read(file, 'utf8');
-    czrc = czrc && JSON.parse(czrc) || null;
-    this.loadFromObject(czrc);
+CZRC.prototype.getPromise = function () {
+  return new Promise((resolve) => resolve(this));
 };
 
-CZRC.prototype.loadScopesFromProject = function() {
-    this.scopes = [];
-    let own_rc = __dirname + '/' + rc_file_name;
-    let project_rc = __dirname + '/../../../' + rc_file_name;
-    if (fs.existsSync(project_rc)) {
-        this.loadScopesFromFile(project_rc);
-        return;
-    }
+CZRC.prototype.formatTypesWithEmoji = function () {
+  let types = this.types;
+  const max_name_length = types.reduce((max, type) => (type.name.length > max ? type.name.length : max), 0);
+  const max_emoji_length = types.reduce((max, type) => (type.emoji.length > max ? type.emoji.length : max), 0);
 
-    if (fs.existsSync(own_rc)) this.loadScopesFromFile(own_rc);
+  return types.map((type) => ({
+    name: `${pad(type.name, max_name_length)}  ${pad(type.emoji, max_emoji_length)}  ${type.description.trim()}`,
+    value: type,
+    code: type.code,
+  }));
 };
 
-CZRC.prototype.loadScopesFromFile = function(file) {
-    this.scopes = JSON.parse(read(file, 'utf8')).scopes;
+CZRC.prototype.searchAuthor = function (answers, input) {
+  input = input || "";
+  let authors = this.authors.map((author) => author.name);
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      var fuzzy_result = fuzzy.filter(input, authors);
+      resolve(fuzzy_result.map((el) => el.original));
+    }, Math.random() * (500 - 30) + 30);
+  });
 };
 
-CZRC.prototype.getPromise = function() {
-    return new Promise(resolve => resolve(this));
+CZRC.prototype.getAuthorByName = function (name) {
+  for (let i = 0; i < this.authors.length; i++) {
+    if (this.authors[i].name === name) return this.authors[i];
+  }
+  return null;
 };
 
-CZRC.prototype.formatTypesWithEmoji = function() {
-    let types = this.types;
-    const max_name_length = types.reduce(
-        (max, type) => (type.name.length > max ? type.name.length : max), 0
-    );
-    const max_emoji_length = types.reduce(
-        (max, type) => (type.emoji.length > max ? type.emoji.length : max), 0
-    );
-
-    return types.map(type => ({
-        name: `${pad(type.name, max_name_length)}  ${pad(type.emoji, max_emoji_length)}  ${type.description.trim()}`,
-        value: type,
-        code: type.code
-    }));
+CZRC.prototype.getTypeByName = function (name) {
+  for (let i = 0; i < this.types.length; i++) {
+    if (this.types[i].name === name) return this.types[i];
+  }
+  return null;
 };
 
-CZRC.prototype.searchAuthor = function(answers, input) {
-    input = input || '';
-    let authors = this.authors.map(author => author.name);
-    return new Promise(function(resolve) {
-        setTimeout(function() {
-            var fuzzy_result = fuzzy.filter(input, authors);
-            resolve(fuzzy_result.map(el => el.original));
-        }, Math.random() * (500 - 30) + 30);
-    });
+CZRC.prototype.getTypeByEmoji = function (emoji) {
+  for (let i = 0; i < this.types.length; i++) {
+    if (this.types[i].emoji === emoji) return this.types[i];
+  }
+  return null;
 };
 
-CZRC.prototype.getAuthorByName = function(name) {
-    for (let i=0; i<this.authors.length; i++) {
-        if(this.authors[i].name === name) return this.authors[i];
-    }
-    return null;
+CZRC.prototype.isValidTypeName = function (type) {
+  return this.getTypeByName(type) !== null;
 };
 
-CZRC.prototype.getTypeByName = function(name) {
-    for (let i=0; i<this.types.length; i++) {
-        if(this.types[i].name === name) return this.types[i];
-    }
-    return null;
+CZRC.prototype.isValidTypeEmoji = function (emoji) {
+  return this.getTypeByEmoji(emoji) !== null;
 };
 
-CZRC.prototype.getTypeByEmoji = function(emoji) {
-    for (let i=0; i<this.types.length; i++) {
-        if(this.types[i].emoji === emoji) return this.types[i];
-    }
-    return null;
+CZRC.prototype.isValidType = function (name, emoji) {
+  let type = this.getTypeByName(name);
+  if (type === null) return false;
+  return type.emoji === emoji;
 };
 
-CZRC.prototype.isValidTypeName = function(type) {
-    return this.getTypeByName(type) !== null;
+CZRC.prototype.isValidAuthor = function (name, email) {
+  let author = this.getAuthorByName(name);
+  if (author === null) return false;
+  return author.email === email;
 };
 
-CZRC.prototype.isValidTypeEmoji = function(emoji) {
-    return this.getTypeByEmoji(emoji) !== null;
+CZRC.prototype.isValidScope = function (scope) {
+  return this.scopes.includes(scope);
 };
 
-CZRC.prototype.isValidType = function(name, emoji) {
-    let type = this.getTypeByName(name);
-    if(type === null) return false;
-    return type.emoji === emoji;
+CZRC.prototype.doesNotHaveIssueTracker = function () {
+  return !this.hasIssueTracker();
 };
 
-CZRC.prototype.isValidAuthor = function(name, email) {
-    let author = this.getAuthorByName(name);
-    if(author === null) return false;
-    return author.email === email;
+CZRC.prototype.hasIssueTracker = function () {
+  return this.issueTrackers.length > 0;
 };
 
-CZRC.prototype.isValidScope = function(scope) {
-    return this.scopes.includes(scope);
-};
+CZRC.prototype.isValidIssueTracker = function (name) {
+  if (this.doesNotHaveIssueTracker()) return true;
 
-CZRC.prototype.isValidIssueTracker = function(name) {
-    return this.issueTrackers.includes(name);
+  return this.issueTrackers.includes(name);
 };
 
 module.exports = CZRC;

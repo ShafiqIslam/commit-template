@@ -1,0 +1,5 @@
+{
+  "issue_trackers": [],
+  "default_issue_tracker": null,
+  "scopes": ["Loader", "Formatter", "DTO"]
+}
