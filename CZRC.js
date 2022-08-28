@@ -39,6 +39,7 @@ CZRC.prototype.overwrite = function (overwrite) {
 CZRC.prototype.pushExtraImperativeVerbs = function (extraImperativeVerbs) {
   if (!Array.isArray(extraImperativeVerbs)) return;
   if (extraImperativeVerbs.length == 0) return;
+  extraImperativeVerbs = extraImperativeVerbs.map((v) => v.toLowerCase());
   this.extraImperativeVerbs = [...this.extraImperativeVerbs, ...extraImperativeVerbs];
 };
 

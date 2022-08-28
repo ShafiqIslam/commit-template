@@ -101,7 +101,7 @@ function validateSubject(subject) {
 }
 
 function isImperative(sentence) {
-  let first_word = sentence.split(" ")[0];
+  let first_word = sentence.split(" ")[0].toLowerCase();
   let imperative = nlp(first_word).verbs().isImperative().text();
   if (first_word == imperative) return true;
 

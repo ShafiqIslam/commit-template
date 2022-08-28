@@ -104,10 +104,9 @@ async function ensureFile(file_fqn, file_url) {
 
 function getUrlFromFile(urlFile) {
   return read(urlFile)
-    .split(/(?:\r\n|\r|\n)/g)
-    .reduce((prev, cur) => {
-      if (cur.startsWith("URL=")) return cur.replace("URL=", "");
-    });
+    .trim()
+    .split(/(?:\r\n|\r|\n)/g)[1]
+    .replace("URL=", "");
 }
 
 function getProjectRCDownloadFileFQN() {
