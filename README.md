@@ -3,4 +3,4 @@ JS wrapper for the [commit template](https://github.com/ShafiqIslam/dotfiles/blo
 
 # usage
 Not for open use. Meant to be used with
-[@sheba/cz-convention](https://github.com/ShafiqIslam/cz-convention) and [@sheba/commitlint](https://github.com/ShafiqIslam/commitlint) 
+[@polygontech/cz-convention](https://github.com/ShafiqIslam/cz-convention) and [@polygontech/commitlint](https://github.com/ShafiqIslam/commitlint) 

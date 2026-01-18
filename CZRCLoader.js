@@ -57,7 +57,7 @@ CZRCLoader.prototype.overwriteFromProject = async function () {
 };
 
 CZRCLoader.prototype.loadFromProjectURL = async function () {
-  let urlFile = process.cwd() + "/" + project_rc_url_file_name;
+  let urlFile = getProjectFolder() + "/" + project_rc_url_file_name;
 
   if (!fs.existsSync(urlFile)) return;
 
@@ -65,7 +65,7 @@ CZRCLoader.prototype.loadFromProjectURL = async function () {
 };
 
 CZRCLoader.prototype.loadFromProjectRC = function () {
-  let project_rc_file_fqn = process.cwd() + "/" + project_rc_file_name;
+  let project_rc_file_fqn = getProjectFolder() + "/" + project_rc_file_name;
 
   if (!fs.existsSync(project_rc_file_fqn)) return;
 
@@ -111,6 +111,17 @@ function getUrlFromFile(urlFile) {
 
 function getProjectRCDownloadFileFQN() {
   return rc_folder_name + "/" + process.cwd().replace("/", "").replaceAll("/", "_").replaceAll("-", "_") + ".json";
+}
+
+function getProjectFolder() {
+  let current = process.cwd();
+
+  while (current.length > 1) {
+    if (fs.existsSync(current + '/.git')) break;
+    current = current.split("/").slice(0, -1).join("/");
+  }
+
+  return current;
 }
 
 module.exports = CZRCLoader;

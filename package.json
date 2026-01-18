@@ -1,12 +1,15 @@
 {
   "name": "@polygontech/commit-template",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "JS wrapper of https://github.com/ShafiqIslam/dotfiles/blob/master/git/.gitmessage.",
   "homepage": "https://github.com/ShafiqIslam/commit-template",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/ShafiqIslam/commit-template.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "author": "Shafiqul Islam <islamshafiq003@gmail.com>",
   "license": "MIT",
