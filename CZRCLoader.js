@@ -9,7 +9,7 @@ const rc_folder_name = homeDir(".czrc.d");
 const deafult_rc_file = rc_folder_name + "/default.json";
 const project_rc_url_file_name = ".czrc.url";
 const project_rc_file_name = ".czrc.json";
-const default_file_hosted_url = "https://raw.githubusercontent.com/ShafiqIslam/dotfiles/master/git/.czrc.json";
+const default_file_hosted_url = "https://raw.githubusercontent.com/ShafiqIslam/dotfiles/main/global/git/.czrc.json";
 
 function CZRCLoader() {
   this.czrc = new CZRC();
